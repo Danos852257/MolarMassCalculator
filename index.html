@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Molar Mass Calculator</title>
+</head>
+
+
+<body>
+  <div class="header-container">
+    <h1>Molar Mass Calculator</h1>
+    <img src="info_icon.png" id="info-button" alt="Information" role="button" tabindex="0" />
+  </div>
+
+    <div id="info-popup" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
+        <div id="info-content">
+            <button id="close-info" aria-label="Close info popup">&times;</button>
+            <h2 id="info-title">Welcome to Molar Mass Calculator</h2>
+            <p>
+                You can enter formulas in any format, including using lowercase letters, subscripts, paranthesis, and dot notation.<br><br>
+                Symbols with two letters such as co will be interpreted as C and O separately if entered as lowercase.<br><br>
+                Capitalize the first letter (Co) to be interpreted as Co.<br><br>
+                Thank you for using Molar Mass Calculator!
+
+
+            </p>
+        </div>
+    </div>
+
+  <div class="container">
+    
+    <label for="formula">Enter chemical formula:</label>
+    <input type="text" id="formula" placeholder="e.g. C6H12O6 or Ca(OH)2" />
+
+    <div class="result" id="molar-mass"></div>
+    <div class="breakdown" id="element-breakdown"></div>
+    <div class="error" id="error-message"></div>
+  </div>
+
+  <script type="module">
+    import { parseRaw } from './index.js';
+
+    import { molarMasses } from './index.js';
+
+    const infoButton = document.getElementById('info-button');
+    const infoPopup = document.getElementById('info-popup');
+    const closeInfo = document.getElementById('close-info');
+
+    infoButton.addEventListener('click', () => {
+        infoPopup.hidden = false;
+    });
+
+    // Allow opening popup with keyboard Enter or Space keys
+    infoButton.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            infoPopup.hidden = false;
+        }
+    });
+
+    closeInfo.addEventListener('click', () => {
+        infoPopup.hidden = true;
+    });
+
+    // Close popup if user clicks outside the content box
+    infoPopup.addEventListener('click', (e) => {
+        if (e.target === infoPopup) {
+            infoPopup.hidden = true;
+        }
+    });
+
+
+
+    const input = document.getElementById('formula');
+    const molarMassDiv = document.getElementById('molar-mass');
+    const breakdownDiv = document.getElementById('element-breakdown');
+    const errorDiv = document.getElementById('error-message');
+
+    input.addEventListener('input', () => {
+      const formula = input.value.trim();
+      molarMassDiv.textContent = '';
+      breakdownDiv.textContent = '';
+      errorDiv.textContent = '';
+
+      if (!formula) return;
+
+      try {
+        const tokens = parseRaw(formula);
+        let totalMass = 0;
+        const breakdownText = tokens
+          .map(({ element, count }) => {
+            const mass = molarMasses[element] * count;
+            totalMass += mass;
+            return `${element}: ${count}`;
+          })
+          .join(', ');
+
+        molarMassDiv.textContent = `Molar Mass: ${totalMass.toFixed(3)} g/mol`;
+        breakdownDiv.textContent = `Composition: ${breakdownText}`;
+      } catch (err) {
+        errorDiv.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
